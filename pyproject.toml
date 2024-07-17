@@ -1,0 +1,82 @@
+[tool.ruff]
+# Ruff is a fairly agressive code formatter, and linter.
+#
+# We have chosen for an agressive code formatter so that the code has a uniform
+# look and feel, independent of who's working on it.
+#
+# Its linting capabilities will inform us of stuff that most probably are errors
+# on the programmer's side, or inconsistencies with code standards.
+
+# When py313 becomes available, use that!
+target-version = "py311"
+
+exclude = ["**/__pycache__",
+            "**/.mypy_cache",
+            "**/.ruff_cache",
+            "**/.git",
+            "**/.venv"]
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+quote-style = "preserve"
+
+[tool.ruff.lint]
+select = [
+    "F",   # Pyflakes warnings and errors (wide scope of things)
+    "E",   # Pycodestyle errors (mainly about whitespace)
+    "W",   # Pycodestyle warnings (also mainly about whitespace)
+    "I",   # isort (about sorting of imports)
+    "N",   # pep8-naming (snake_case, CamelCase and CONSTANT_SNAKE_CASE)
+    "FIX", # Flake8-fixme (warn about FIXME, TODO, XXX and HACK comments)
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+[tool.mypy]
+# Mypy is a static type checker for Python, and we will use it very strictly.
+#
+# We want strict static type checking, for two reasons:
+#   1. It gives developers less room for accidental errors.
+#   2. Type information is very well documented for users of this package
+#      (i.e., students).  This will make development a lot easier for them
+#      too.
+python_version = "3.11"
+strict = true
+#warn_unreachable = true
+
+enable_error_code = "redundant-self, truthy-bool, truthy-iterable, ignore-without-code, unimported-reveal"
+
+[tool.pyright]
+# An alternative for mypy would be PyRight. One thing PyRight does a bit nicer,
+# is separating its messages in different categories, such as information,
+# warning or error. However, with an initial usage, it felt as if more type
+# hints were required to let it work in a strict configuration.
+# 
+# For now we will leave the options we have experimented with as a comment, as
+# a suggestion for a next starting point of working with PyRight. In the 
+# meantime, mypy will be the default static type checker.
+pythonVersion = "3.11"
+# include = ["**.*py"]
+# exclude = ["**/__pycache__",
+#            "**/.mypy_cache",
+#            "**/.ruff_cache"]
+# 
+# typeCheckingMode = "strict"
+# 
+# # Extra strictness on top of the regular typeCheckingMode = "strict"
+# deprecateTypingAliases = true
+# reportMissingTypeStubs = "warning"
+# reportUnnecessaryComparison = "information"
+# reportUnnecessaryContains = "information"
+# reportUnnecessaryIsInstance = "information"
+# reportImplicitOverride = "information"
+# reportImplicitStringConcatenation = "error"
+# reportImportCycles = "information"
+# reportMissingSuperCall = "warning"
+# reportPropertyTypeMismatch = "error"
+# reportShadowedImports = "error"
+# reportUninitializedInstanceVariable = "error"
+# reportUnnecessaryTypeIgnoreComment = "error"
+# reportUnusedCallResult = "information"
