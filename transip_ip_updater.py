@@ -23,10 +23,10 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 API_ENDPOINT = "https://api.transip.nl/v6"
 
 PRIVATE_KEY_FILE = os.environ.get("TRANSIP_PRIVATE_KEY", "/config/private_key.pem")
+LAST_UPDATED_IP_FILE = os.environ.get("PREVIOUS_IP_FILE", "/config/last_updated_ip.txt")
 USERNAME = os.environ.get("TRANSIP_USERNAME", "")
 DOMAIN_TAGS = os.environ.get("TRANSIP_DOMAIN_TAGS", [])
-LOGGING_LEVEL = os.environ.get("LOGGING", "INFO")
-
+LOGGING_LEVEL = os.environ.get("LOGGING_LEVEL", "INFO")
 
 class DnsEntry(TypedDict):
     """Model the TransIP DnsEntry type."""
@@ -104,7 +104,9 @@ def validate_globals() -> None:
 
     if DOMAIN_TAGS is not None and not isinstance(DOMAIN_TAGS, list):
         DOMAIN_TAGS = [tag.strip() for tag in DOMAIN_TAGS.split(",")]
-        logging.debug(f"Found domain tags: {",".join(DOMAIN_TAGS)}")
+        count = len(DOMAIN_TAGS)
+        domain_tags = ", ".join(DOMAIN_TAGS)
+        logging.debug(f"Found {count} domain tags: {domain_tags}")
     elif not DOMAIN_TAGS:
         logging.debug("No domain tags provided")
 
@@ -119,7 +121,7 @@ def to_json(data: dict) -> str:
     return json.dumps(data).encode('utf-8')
 
 
-def setup_logging() -> None:
+def setup_logging(logging_level: str | int) -> None:
     """Setup the logging facility properly."""
     log_colors = {
         'DEBUG': 'bold_blue',
@@ -137,7 +139,7 @@ def setup_logging() -> None:
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger = logging.getLogger()
-    logger.setLevel(LOGGING_LEVEL)
+    logger.setLevel(logging_level)
     logger.addHandler(handler)
     logging.info(f"Set logging level to: {logger.level}")
 
@@ -159,7 +161,7 @@ def authenticate(username, private_key_file) -> tuple[int, str]:
     """
     data = {
         "login": username,
-        "nonce": str(random.randint(0, 1e11)),
+        "nonce": str(random.randint(0, int(1e11))),
         "read_only": False,
         "expiration_time": "5 minutes",
         "label": f"biebbot-{datetime.datetime.now()}",
@@ -219,10 +221,11 @@ def set_dns_entry(token: str, domain: Domain, dns: DnsEntry) -> tuple[int, bool]
 
 
 if __name__ == "__main__":
+    validate_globals()
     logging.debug("Starting")
     external_ip = get_external_ip()
-    if os.path.isfile("/config/last_updated_ip"):
-        with open("/config/last_updated_ip", "r") as f:
+    if os.path.isfile(LAST_UPDATED_IP_FILE):
+        with open(LAST_UPDATED_IP_FILE, "r") as f:
             old_external_ip = f.read().strip()
         if old_external_ip == external_ip:
             logging.info("My IP hasn't changed. Done.")
@@ -250,10 +253,10 @@ if __name__ == "__main__":
                 else:
                     logging.error(f"Could not change; HTTP status code {status}")
     logging.info(f"Changed {changed_count} of {outdated_count} outdated DNS records.")
-    if changed_count == outdated_count and changed_count != 0:
-        with open("/config/last_updated_ip", "w") as f:
+    if changed_count == outdated_count:
+        with open(LAST_UPDATED_IP_FILE, "w") as f:
             logging.debug(
-                f"Trying to write {external_ip = } to /config/last_updated_ip."
+                f"Trying to write {external_ip = } to {LAST_UPDATED_IP_FILE}."
             )
             f.write(external_ip)
             logging.debug("Success! Bye!")

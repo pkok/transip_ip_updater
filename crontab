@@ -1,2 +1,2 @@
 # Run the script every 10 minutes
-*/10 * * * * root python /usr/src/app/transip_ip_updater.py >> /var/log/cron.log 2>&1
+*/10 * * * * /usr/local/bin/python /usr/src/app/transip_ip_updater.py >> /var/log/cron.log 2>&1
