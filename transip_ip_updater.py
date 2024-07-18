@@ -22,11 +22,12 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 API_ENDPOINT = "https://api.transip.nl/v6"
 
-PRIVATE_KEY_FILE = os.environ.get("TRANSIP_PRIVATE_KEY", "/config/private_key.pem")
+PRIVATE_KEY_FILE = os.environ.get("PRIVATE_KEY_FILE", "/config/private_key.pem")
 LAST_UPDATED_IP_FILE = os.environ.get("PREVIOUS_IP_FILE", "/config/last_updated_ip.txt")
-USERNAME = os.environ.get("TRANSIP_USERNAME", "")
-DOMAIN_TAGS = os.environ.get("TRANSIP_DOMAIN_TAGS", [])
+USERNAME = os.environ.get("USERNAME", "")
+DOMAIN_TAGS = os.environ.get("DOMAIN_TAGS", [])
 LOGGING_LEVEL = os.environ.get("LOGGING_LEVEL", "INFO")
+
 
 class DnsEntry(TypedDict):
     """Model the TransIP DnsEntry type."""
@@ -183,6 +184,9 @@ def authenticate(username, private_key_file) -> tuple[int, str]:
     url = API_ENDPOINT + "/auth"
     headers = {"Signature": signature_b64}
     response = requests.post(url=url, headers=headers, data=request_body)
+    logging.debug(f"Authentication status code: {response.status_code}")
+    response_j = response.json()
+    logging.debug(f"Authentication response.json(): {response_j}")
     return response.status_code, response.json()['token']
 
 
